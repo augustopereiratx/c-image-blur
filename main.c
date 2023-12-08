@@ -103,9 +103,11 @@ int apply_median_filter(png_bytep *row_pointers, int width, int height)
         }
     }
 
-    for (int y = window_size / 2; y < height - window_size / 2; y++)
+    int half_window = window_size / 2;
+
+    for (int y = 0; y < height; y++)
     {
-        for (int x = window_size / 2; x < width - window_size / 2; x++)
+        for (int x = 0; x < width; x++)
         {
             int values_R[window_size * window_size];
             int values_G[window_size * window_size];
@@ -113,24 +115,34 @@ int apply_median_filter(png_bytep *row_pointers, int width, int height)
             int values_A[window_size * window_size];
 
             int index = 0;
-            for (int i = -window_size / 2; i <= window_size / 2; i++)
+
+            for (int i = -half_window; i <= half_window; i++)
             {
-                for (int j = -window_size / 2; j <= window_size / 2; j++)
+                for (int j = -half_window; j <= half_window; j++)
                 {
-                    png_bytep px = &(row_pointers[y + i][4 * (x + j)]);
-                    values_R[index] = (int)px[0];
-                    values_G[index] = (int)px[1];
-                    values_B[index] = (int)px[2];
-                    values_A[index] = (int)px[3];
-                    index++;
+                    int currentY = y + i;
+                    int currentX = x + j;
+
+                    if (currentY >= 0 && currentY < height && currentX >= 0 && currentX < width)
+                    {
+                        png_bytep px = &(row_pointers[currentY][4 * currentX]);
+                        values_R[index] = (int)px[0];
+                        values_G[index] = (int)px[1];
+                        values_B[index] = (int)px[2];
+                        values_A[index] = (int)px[3];
+                        index++;
+                    }
                 }
             }
 
-            png_bytep px = &(row_pointers[y][4 * x]);
-            px[0] = (png_byte)median(values_R, window_size * window_size);
-            px[1] = (png_byte)median(values_G, window_size * window_size);
-            px[2] = (png_byte)median(values_B, window_size * window_size);
-            px[3] = (png_byte)median(values_A, window_size * window_size);
+            if (index > 0)
+            {
+                png_bytep px = &(row_pointers[y][4 * x]);
+                px[0] = (png_byte)median(values_R, index);
+                px[1] = (png_byte)median(values_G, index);
+                px[2] = (png_byte)median(values_B, index);
+                px[3] = (png_byte)median(values_A, index);
+            }
         }
     }
     return 0;
@@ -152,25 +164,34 @@ int apply_average_blur(png_bytep *row_pointers, int width, int height)
         }
     }
 
-    for (int y = window_size / 2; y < height - window_size / 2; y++)
+    int half_window = window_size / 2;
+
+    for (int y = 0; y < height; y++)
     {
-        for (int x = window_size / 2; x < width - window_size / 2; x++)
+        for (int x = 0; x < width; x++)
         {
             int sum_R = 0, sum_G = 0, sum_B = 0, sum_A = 0;
+            int num_pixels = 0;
 
-            for (int i = -window_size / 2; i <= window_size / 2; i++)
+            for (int i = -half_window; i <= half_window; i++)
             {
-                for (int j = -window_size / 2; j <= window_size / 2; j++)
+                for (int j = -half_window; j <= half_window; j++)
                 {
-                    png_bytep px = &(row_pointers[y + i][4 * (x + j)]);
-                    sum_R += (int)px[0];
-                    sum_G += (int)px[1];
-                    sum_B += (int)px[2];
-                    sum_A += (int)px[3];
+                    int currentY = y + i;
+                    int currentX = x + j;
+
+                    if (currentY >= 0 && currentY < height && currentX >= 0 && currentX < width)
+                    {
+                        png_bytep px = &(row_pointers[currentY][4 * currentX]);
+                        sum_R += (int)px[0];
+                        sum_G += (int)px[1];
+                        sum_B += (int)px[2];
+                        sum_A += (int)px[3];
+                        num_pixels++;
+                    }
                 }
             }
 
-            int num_pixels = window_size * window_size;
             png_bytep px = &(row_pointers[y][4 * x]);
             px[0] = (png_byte)(sum_R / num_pixels);
             px[1] = (png_byte)(sum_G / num_pixels);
