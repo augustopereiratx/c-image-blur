@@ -5,7 +5,7 @@
 <s>The stronger the filter, the bigger the image's unfiltered edges get. I'll look into this when I have the time.</s><b> FIXED</b>
 
 <h2 align="center">Usage</h2>
-Build the program with the ```build-linux.sh``` script. The program returns a png called ```out.png```.
+Build the program with the <code>build-linux.sh</code> script. The program returns a png called <code>out.png</code>.
 
 <h2 align="center"> Contact Me </h2>
 <p align="center">
